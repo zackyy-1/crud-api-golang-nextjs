@@ -27,5 +27,10 @@
 			return c.Status(fiber.StatusUnauthorized).SendString("Invalid token")
 		}
 
+		// simpen claims ke context biar bisa dipake di handler
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			c.Locals("user", claims)
+		}
+
 		return c.Next()
 	}

@@ -35,6 +35,12 @@ export const loginUser = async (data: { username: string; password: string }) =>
   return res.data;
 };
 
+// Get user profile (auth required)
+export const getProfile = async () => {
+  const res = await api.get(`/profile`);
+  return res.data;
+};
+
 // Get all books
 export const getBooks = async (limit?: number, offset?: number) => {
   const res = await api.get(`/books`, {
@@ -50,13 +56,13 @@ export const getBookById = async (id: number) => {
 };
 
 // Create book (auth required)
-export const createBook = async (data: { title: string; author: string }) => {
+export const createBook = async (data: { title: string; author: string; year: number }) => {
   const res = await api.post(`/books`, data);
   return res.data;
 };
 
 // Update book (auth required)
-export const updateBook = async (id: number, data: { title?: string; author?: string }) => {
+export const updateBook = async (id: number, data: { title?: string; author?: string; year?: number }) => {
   const res = await api.put(`/books/${id}`, data);
   return res.data;
 };

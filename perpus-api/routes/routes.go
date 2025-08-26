@@ -17,8 +17,8 @@ func Setup(app *fiber.App) {
 	bookRoutes.Get("/:id", controllers.GetBook)
 	bookRoutes.Put("/:id", controllers.UpdateBook)
 	bookRoutes.Delete("/:id", controllers.DeleteBook)
-	
-	app.Post("/users", controllers.CreateUser)
+
+	app.Post("/register", controllers.Register)
 	app.Post("/login", controllers.Login)
-	// app.Post("/register", controllers.RegisterUser)
+	app.Get("/profile", middleware.AuthMiddleware, controllers.GetProfile)
 }

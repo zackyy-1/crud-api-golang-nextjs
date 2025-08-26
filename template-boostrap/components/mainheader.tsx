@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import {
   Menu, Search, Sun, Moon, ShoppingCart, Bell,
   Grid, Maximize2, Filter, Settings
@@ -8,7 +8,9 @@ import {
 import ThemeSwitcher from "@/components/ui/themeSwitcher";
 import ShoppingCartDropdown from "@/components/ui/shoppingDropdown";
 import NotificationDropdown from "@/components/ui/notificationDropdown";
+import UserDropdown from "@/components/ui/userDropdown";
 import { useTheme } from "./context/themeContext";
+import { getProfile } from "@/libs/api";
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -16,12 +18,15 @@ interface HeaderProps {
 
 export default function MainHeader({ onMenuToggle }: HeaderProps) {
   const [fullscreen, setFullscreen] = useState(false);
-  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const cartButtonRef = useRef<HTMLButtonElement>(null);
+  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const bellButtonRef = useRef<HTMLButtonElement>(null);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const { themeMode, setThemeMode } = useTheme();
+  const cartButtonRef = useRef<HTMLButtonElement>(null);
+  const bellButtonRef = useRef<HTMLButtonElement>(null);
+  const userButtonRef = useRef<HTMLDivElement>(null);
+  const [user, setUser] = useState<{ username: string;} | null>(null);
 
 
   const handleFullscreen = () => {
@@ -32,6 +37,18 @@ export default function MainHeader({ onMenuToggle }: HeaderProps) {
     }
     setFullscreen(!fullscreen);
   };
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const profile = await getProfile();
+        setUser(profile);
+      } catch (err) {
+        console.error("Gagal ambil profile:", err);
+      }
+    }
+    fetchUser();
+  }, []);
 
   return (
     <>
@@ -52,7 +69,11 @@ export default function MainHeader({ onMenuToggle }: HeaderProps) {
               <Menu className="h-5 w-5" />
             </button>
 
-            <div className="relative">
+            <div className="relative transition-colors duration-300"
+              style={{ 
+                color: themeMode === "dark" ? "#e5e7eb" : "#111827",
+               }}
+            >
               <input
                 type="text"
                 placeholder="Search..."
@@ -130,13 +151,25 @@ export default function MainHeader({ onMenuToggle }: HeaderProps) {
 
             <Filter className="h-5 w-5 cursor-pointer hover:text-gray-400" />
 
-            {/* User Info */}
-            <div className="flex items-center gap-2">
+            {/* // Bagian User Info */}
+            <div
+              ref={userButtonRef}
+              className="relative flex items-center gap-2 cursor-pointer"
+              onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+            >
               <div className="w-8 h-8 rounded-full bg-gray-300" />
               <div className="hidden sm:block text-right">
-                <p className="text-sm font-medium m-0">John</p>
-                <p className="text-xs">Web Developer</p>
+                <p className="text-sm font-medium m-0">
+                  {user ? user.username : "Loading..."}
+                </p>
+                <span className="text-xs mb-2">Web Developer</span>
               </div>
+
+              <UserDropdown
+                isOpen={isUserDropdownOpen}
+                onClose={() => setIsUserDropdownOpen(false)}
+                triggerRef={userButtonRef}
+              />
             </div>
 
             {/* Settings */}

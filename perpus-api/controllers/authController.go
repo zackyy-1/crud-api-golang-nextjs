@@ -91,3 +91,14 @@ func Register(c *fiber.Ctx) error {
         },
     })
 }
+
+// GetProfile - ambil data user dari JWT
+func GetProfile(c *fiber.Ctx) error {
+    claims := c.Locals("user").(jwt.MapClaims) // langsung ambil MapClaims
+
+    return c.JSON(fiber.Map{
+        "id":       claims["id"],
+        "username": claims["username"],
+        "email":    claims["email"],
+    })
+}

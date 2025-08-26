@@ -3,6 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import { useTheme } from '@/components/context/themeContext';
+import LoginWarning from "@/components/ui/warningPage";
+import router from 'next/router';
 import {
   TrendingUp,
   TrendingDown,
@@ -72,6 +74,7 @@ const topProducts = [
 
 export default function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showWarning, setShowWarning] = useState(false);
   const { direction, themeMode, menuColor, headerColor, primaryColor, backgroundColor } = useTheme();
 
   useEffect(() => {
@@ -81,6 +84,24 @@ export default function Dashboard() {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    // Cek apakah user sudah login
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setShowWarning(true);
+    }
+  }, []);
+
+  const handleLogin = () => {
+    router.push("/login");
+  };
+
+  const handleClose = () => {
+    setShowWarning(false);
+    // Optional: redirect ke home jika ingin
+    // router.push("/");
+  };
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -324,6 +345,12 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      
+      {/* Warning Notification */}
+      <LoginWarning
+        isOpen={showWarning}
+        onLogin={handleLogin}
+      />
     </div>
   );
 }

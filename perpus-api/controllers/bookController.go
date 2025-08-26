@@ -85,18 +85,18 @@ func DeleteBook(c *fiber.Ctx) error {
 }
 
 // Create User
-func CreateUser(c *fiber.Ctx) error {
-	user := new(models.User)
+// func CreateUser(c *fiber.Ctx) error {
+// 	user := new(models.User)
 
-	if err := c.BodyParser(user); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "Invalid input"})
-	}
+// 	if err := c.BodyParser(user); err != nil {
+// 		return c.Status(400).JSON(fiber.Map{"error": "Invalid input"})
+// 	}
 
-	user.Password = HashPassword(user.Password) // Hash the password
+// 	user.Password = HashPassword(user.Password) // Hash the password
 
-	if err := config.DB.Create(&user).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Failed to create user"})
-	}
+// 	if err := config.DB.Create(&user).Error; err != nil {
+// 		return c.Status(500).JSON(fiber.Map{"error": "Failed to create user"})
+// 	}
 
-	return c.JSON(user)
-}
+// 	return c.JSON(user)
+// }

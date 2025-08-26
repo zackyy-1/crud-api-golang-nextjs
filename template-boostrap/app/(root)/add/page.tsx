@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/context/themeContext";
+import { createBook } from "@/libs/api";
 import { ArrowLeft, Plus, BookOpen, User, Calendar } from "lucide-react";
 
 export default function AddBookPage() {
@@ -13,9 +14,7 @@ export default function AddBookPage() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const { direction, themeMode } = useTheme();
-
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const { themeMode } = useTheme();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -29,39 +28,26 @@ export default function AddBookPage() {
     setErrorMsg(null);
     setSuccessMsg(null);
 
+    // validasi form
     if (!title.trim() || !author.trim() || year === "" || Number.isNaN(Number(year))) {
       setErrorMsg("Harap lengkapi semua field dengan benar.");
       return;
     }
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setErrorMsg("Silakan login terlebih dahulu.");
-      return;
-    }
-
     try {
       setSubmitting(true);
-      const res = await fetch(`${API_URL}/books`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: title.trim(),
-          author: author.trim(),
-          year: Number(year),
-        }),
-      });
 
-      if (!res.ok) {
-        throw new Error(`Gagal menambahkan buku (HTTP ${res.status})`);
-      }
+      // panggil createBook dari api.ts, kita kirim title dan author
+      await createBook({
+        title: title.trim(),
+        author: author.trim(),
+        // kalo backend lu support year, bisa ditambahin:
+        year: Number(year)
+      });
 
       setSuccessMsg("Buku berhasil ditambahkan!");
       setTimeout(() => {
-        router.push("/dashboard2");
+        router.push("/dashboard2"); // balik ke halaman dashboard
       }, 1500);
     } catch (err: any) {
       setErrorMsg(err?.message || "Terjadi kesalahan saat menambahkan buku.");
@@ -71,171 +57,157 @@ export default function AddBookPage() {
   };
 
   return (
-    <div className="min-h-screen p-4 transition-colors duration-300 flex items-center justify-center"
+    <div
+      className="flex-1 p-6 transition-colors duration-300"
       style={{
-        backgroundColor: themeMode === "dark" ? "#1e1e2f" : "#f8fafc",
+        backgroundColor: themeMode === "dark" ? "#111827" : "#f1f5f9",
       }}
     >
-      <div className="w-full max-w-md">
+
+      <button
+        onClick={() => router.back()}
+        className="flex items-center px-3 py-2 rounded text-sm font-medium transition-colors duration-300"
+        style={{
+          backgroundColor: themeMode === "dark" ? "#2563eb" : "#2563eb",
+          color: themeMode === "dark" ?  "#ffffff" : "#ffffff",
+        }}
+        suppressHydrationWarning
+      >
+        <ArrowLeft className="w-4 h-4 mr-1.5" />
+        Kembali
+      </button>
+          
+      <div
+        className="max-w-2xl mx-auto rounded-2xl shadow-lg p-8 transition-all duration-300"
+        style={{
+          backgroundColor: themeMode === "dark" ? "#2a2a3b" : "#ffffff",
+          color: themeMode === "dark" ? "#FFFFFF" : "#171717",
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center mb-6">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center text-sm text-gray-600 hover:text-gray-800 transition-colors mr-4"
-            style={{ color: themeMode === "dark" ? "#e5e7eb" : "#6b7280" }}
-            suppressHydrationWarning
+        <div className="flex items-center mb-6 gap-2">
+          <h1
+            className="text-xl font-semibold"
+            style={{
+              color: themeMode === "dark" ? "#f9fafb" : "#111827",
+            }}
           >
-            <ArrowLeft className="w-4 h-4 mr-1" />
-            Kembali
-          </button>
-          <h1 className="text-xl font-semibold" style={{ color: themeMode === "dark" ? "#e5e7eb" : "#111827" }}>
             Tambah Buku Baru
           </h1>
         </div>
 
-        {/* Form Container */}
-        <div className="rounded-xl shadow-sm p-6 transition-colors duration-300"
-          style={{
-            backgroundColor: themeMode === "dark" ? "#2a2a3b" : "#ffffff",
-            border: themeMode === "dark" ? "1px solid #374151" : "1px solid #e5e7eb",
-          }}
-        >
-          {errorMsg && (
-            <div className="mb-4 p-3 rounded-lg text-sm transition-colors"
-              style={{
-                backgroundColor: themeMode === "dark" ? "#4c1d1d" : "#fef2f2",
-                color: themeMode === "dark" ? "#fca5a5" : "#dc2626",
-                border: themeMode === "dark" ? "1px solid #7f1d1d" : "1px solid #fecaca",
-              }}
-            >
-              {errorMsg}
-            </div>
-          )}
-
-          {successMsg && (
-            <div className="mb-4 p-3 rounded-lg text-sm transition-colors"
-              style={{
-                backgroundColor: themeMode === "dark" ? "#1a3a1a" : "#f0fdf4",
-                color: themeMode === "dark" ? "#86efac" : "#16a34a",
-                border: themeMode === "dark" ? "1px solid #2d5a2d" : "1px solid #bbf7d0",
-              }}
-            >
-              {successMsg}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Title Field */}
-            <div>
-              <label className="block text-sm font-medium mb-2 flex items-center"
-                style={{ color: themeMode === "dark" ? "#e5e7eb" : "#374151" }}
-              >
-                <BookOpen className="w-4 h-4 mr-2" />
-                Judul Buku
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2"
-                style={{
-                  backgroundColor: themeMode === "dark" ? "#1e1e2f" : "#f9fafb",
-                  borderColor: themeMode === "dark" ? "#4b5563" : "#d1d5db",
-                  color: themeMode === "dark" ? "#e5e7eb" : "#111827",
-                }}
-                placeholder="Masukkan judul buku"
-                required
-              />
-            </div>
-
-            {/* Author Field */}
-            <div>
-              <label className="block text-sm font-medium mb-2 flex items-center"
-                style={{ color: themeMode === "dark" ? "#e5e7eb" : "#374151" }}
-              >
-                <User className="w-4 h-4 mr-2" />
-                Penulis
-              </label>
-              <input
-                type="text"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2"
-                style={{
-                  backgroundColor: themeMode === "dark" ? "#1e1e2f" : "#f9fafb",
-                  borderColor: themeMode === "dark" ? "#4b5563" : "#d1d5db",
-                  color: themeMode === "dark" ? "#e5e7eb" : "#111827",
-                }}
-                placeholder="Masukkan nama penulis"
-                required
-              />
-            </div>
-
-            {/* Year Field */}
-            <div>
-              <label className="block text-sm font-medium mb-2 flex items-center"
-                style={{ color: themeMode === "dark" ? "#e5e7eb" : "#374151" }}
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                Tahun Terbit
-              </label>
-              <input
-                type="number"
-                value={year}
-                onChange={(e) => setYear(e.target.value === "" ? "" : Number(e.target.value))}
-                className="w-full px-4 py-2 rounded-lg border transition-colors focus:outline-none focus:ring-2"
-                style={{
-                  backgroundColor: themeMode === "dark" ? "#1e1e2f" : "#f9fafb",
-                  borderColor: themeMode === "dark" ? "#4b5563" : "#d1d5db",
-                  color: themeMode === "dark" ? "#e5e7eb" : "#111827",
-                }}
-                placeholder="Masukkan tahun terbit"
-                min="0"
-                max={new Date().getFullYear()}
-                required
-              />
-            </div>
-
-            {/* Buttons */}
-            <div className="flex gap-3 pt-4">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-                style={{
-                  backgroundColor: submitting ? "#9ca3af" : "#3b82f6",
-                  color: "#ffffff",
-                }}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                {submitting ? "Menambah..." : "Tambah Buku"}
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="px-4 py-2 rounded-lg border text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: themeMode === "dark" ? "#374151" : "#f9fafb",
-                  borderColor: themeMode === "dark" ? "#4b5563" : "#d1d5db",
-                  color: themeMode === "dark" ? "#e5e7eb" : "#374151",
-                }}
-              >
-                Batal
-              </button>
-            </div>
-          </form>
-
-          {/* Info Note */}
-          <div className="mt-6 p-3 rounded-lg text-xs"
-            style={{
-              backgroundColor: themeMode === "dark" ? "#1e1e2f" : "#f1f5f9",
-              color: themeMode === "dark" ? "#9ca3af" : "#64748b",
-            }}
-          >
-            <p>Pastikan Anda sudah login dan memiliki token yang valid.</p>
+        {/* Alert Messages */}
+        {errorMsg && (
+          <div className="mb-4 rounded-lg border text-sm p-3 bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700">
+            {errorMsg}
           </div>
-        </div>
+        )}
+        {successMsg && (
+          <div className="mb-4 rounded-lg border text-sm p-3 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700">
+            {successMsg}
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5 translation-colors duration-300">
+          {/* Title */}
+          <div>
+            <label className="flex items-center text-sm font-medium mb-2">
+              <BookOpen className="w-4 h-4 mr-2" />
+              Judul Buku
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full rounded-lg border px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500/60 focus:outline-none transition-colors"
+              style={{
+                backgroundColor: themeMode === "dark" ? "#111827" : "#f9fafb",
+                borderColor: themeMode === "dark" ? "#4b5563" : "#d1d5db",
+                color: themeMode === "dark" ? "#f9fafb" : "#111827",
+              }}
+              placeholder="Masukkan judul buku"
+              required 
+              suppressHydrationWarning
+            />
+          </div>
+
+          {/* Author */}
+          <div className="flex flex-col gap-1">
+            <label className="flex items-center text-sm font-medium">
+              <User className="w-4 h-4 mr-2" /> 
+              Penulis
+            </label>
+            <input
+              type="text"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              className="w-full rounded-lg border px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500/60 focus:outline-none transition-colors"
+              style={{
+                backgroundColor: themeMode === "dark" ? "#111827" : "#f9fafb",
+                borderColor: themeMode === "dark" ? "#4b5563" : "#d1d5db",
+                color: themeMode === "dark" ? "#f9fafb" : "#111827",
+              }}
+              placeholder="Masukkan nama penulis"
+              required
+              suppressHydrationWarning
+            />
+          </div>
+
+          {/* Year */}
+          <div>
+            <label className="flex items-center text-sm font-medium mb-2">
+              <Calendar className="w-4 h-4 mr-2" />
+              Tahun Terbit
+            </label>
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(e.target.value === "" ? "" : Number(e.target.value))}
+              className="w-full rounded-lg border px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500/60 focus:outline-none transition-colors"
+              style={{
+                backgroundColor: themeMode === "dark" ? "#111827" : "#f9fafb",
+                borderColor: themeMode === "dark" ? "#4b5563" : "#d1d5db",
+                color: themeMode === "dark" ? "#f9fafb" : "#111827",
+              }}
+              placeholder="Masukkan tahun terbit"
+              min="0"
+              max={new Date().getFullYear()}
+              required
+              suppressHydrationWarning
+            />
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex items-center justify-center flex-1 rounded px-5 py-2.5 text-sm font-medium text-white transition-colors disabled:opacity-50"
+              style={{
+                backgroundColor: submitting ? "#9ca3af" : "#2563eb",
+              }}
+              suppressHydrationWarning
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {submitting ? "Menambah..." : "Tambah Buku"}
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="rounded border px-4 py-2 text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: themeMode === "dark" ? "#374151" : "#f9fafb",
+                borderColor: themeMode === "dark" ? "#4b5563" : "#c4c5c7ff",
+                color: themeMode === "dark" ? "#f9fafb" : "#374151",
+              }}
+              suppressHydrationWarning
+            >
+              Batal
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/context/themeContext";
 import { getBooks, deleteBook } from "@/libs/api"; // pake API lu
+import LoginWarning from "@/components/ui/warningPage";
 
 export default function Dashboard1() {
-  const router = useRouter();
+  const router = useRouter(); 
+  const [showWarning, setShowWarning] = useState(false);
   const { direction, themeMode, primaryColor, backgroundColor } = useTheme();
 
   // state buat data books
@@ -16,7 +18,7 @@ export default function Dashboard1() {
 
   // pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 3;
+  const rowsPerPage = 5;
 
   const totalPages = Math.ceil(books.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
@@ -28,14 +30,33 @@ export default function Dashboard1() {
       try {
         const res = await getBooks(); // otomatis kirim token lewat interceptor
         setBooks(res); // pastiin backend balikin array
-      } catch (err: any) {
-        console.error("Gagal fetch books:", err.message);
+      // } 
+      // catch (err: any) {
+      // console.error("Gagal fetch books:", err.message);
       } finally {
         setLoading(false);
       }
     };
     fetchBooks();
   }, []);
+
+  useEffect(() => {
+    // Cek apakah user sudah login
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setShowWarning(true);
+    }
+  }, []);
+
+  const handleClose = () => {
+    setShowWarning(false);
+    // Optional: redirect ke home jika ingin
+    // router.push("/");
+  };
+
+  const handleLogin = () => {
+    router.push("/login");
+  };
 
   // delete handler
   const handleDelete = async (id: number) => {
@@ -74,7 +95,7 @@ export default function Dashboard1() {
 
         {/* Table */}
         <div
-          className="p-4 shadow rounded-xl transition-colors duration-300"
+          className="p-4 shadow rounded transition-colors duration-300"
           style={{
             background: themeMode === "dark" ? "#2a2a3b" : "#ffffff",
             color: themeMode === "dark" ? "#FFFFFF" : "#171717",
@@ -95,6 +116,7 @@ export default function Dashboard1() {
           ) : (
             <table className="w-full border border-gray-200 rounded-lg">
               <thead
+                className="transition-colors duration-300"
                 style={{
                   background: themeMode === "dark" ? "#1e1e2f" : "#f3f4f6",
                   color: themeMode === "dark" ? "#FFFFFF" : "#171717",
@@ -104,6 +126,7 @@ export default function Dashboard1() {
                   <th className="p-2 border">ID</th>
                   <th className="p-2 border">Title</th>
                   <th className="p-2 border">Author</th>
+                  <th className="p-2 border">Year</th>
                   <th className="p-2 border">Action</th>
                 </tr>
               </thead>
@@ -113,6 +136,7 @@ export default function Dashboard1() {
                     <td className="p-2 border">{book.id}</td>
                     <td className="p-2 border">{book.title}</td>
                     <td className="p-2 border">{book.author}</td>
+                    <td className="p-2 border">{book.year}</td>
                     <td className="p-2 border">
                       <div className="flex justify-center gap-2">
                         <button
@@ -151,12 +175,19 @@ export default function Dashboard1() {
               onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
               className="px-3 py-1 rounded disabled:opacity-50 transition-colors duration-300"
               disabled={currentPage === totalPages}
+              suppressHydrationWarning
             >
               Next
             </button>
           </div>
         </div>
       </div>
+
+       {/* Warning Notification */}
+      <LoginWarning
+        isOpen={showWarning}
+        onLogin={handleLogin}
+      />
     </div>
   );
 }

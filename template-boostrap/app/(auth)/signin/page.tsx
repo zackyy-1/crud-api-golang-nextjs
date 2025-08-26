@@ -109,7 +109,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
                 suppressHydrationWarning
               >
                 {isLoading ? "Signing in..." : "Sign in"}
@@ -122,6 +122,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => router.push("/signup")}
                   className="text-blue-600 hover:underline"
+                  suppressHydrationWarning
                 >
                   Sign up
                 </button>

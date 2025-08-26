@@ -52,27 +52,27 @@ func ConnectDB() {
     DB.AutoMigrate(&models.Book{}, &models.User{})
 
 	// Seed default user
-	var count int64
-	DB.Model(&models.User{}).Count(&count)
-	if count == 0 {
-		defaultUser := models.User{
-			Username: "zacky",
-            Email:    "zacky@gmail.com",
-			Password: HashPassword("123"), // hash password
-		}
-		DB.Create(&defaultUser)
-		fmt.Println("Default user created:", defaultUser.Username)
-	}
+	// var count int64
+	// DB.Model(&models.User{}).Count(&count)
+	// if count == 0 {
+	// 	defaultUser := models.User{
+	// 		Username: "zacky",
+    //         Email:    "zacky@gmail.com",
+	// 		Password: HashPassword("123"), // hash password
+	// 	}
+	// 	DB.Create(&defaultUser)
+	// 	fmt.Println("Default user created:", defaultUser.Username)
+	// }
 
-	var countal int64
-	DB.Model(&models.Book{}).Count(&countal)
-	if countal == 0 {
-		defaultUser := models.Book{
-			Title:  "Default Book",
-			Author: "Default Author",
-			Year:   2023,
-		}
-		DB.Create(&defaultUser)
-		fmt.Println("Default book created:", defaultUser.Title)
-	}
+	// var countal int64
+	// DB.Model(&models.Book{}).Count(&countal)
+	// if countal == 0 {
+	// 	defaultUser := models.Book{
+	// 		Title:  "Default Book",
+	// 		Author: "Default Author",
+	// 		Year:   2023,
+	// 	}
+	// 	DB.Create(&defaultUser)
+	// 	fmt.Println("Default book created:", defaultUser.Title)
+	// }
 }
